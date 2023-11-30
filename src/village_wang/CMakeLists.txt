@@ -36,7 +36,8 @@ ament_package()
 add_executable(wang2_node src/wang2.cpp)
 ament_target_dependencies(wang2_node 
   rclcpp 
-  village_interfaces)
+  village_interfaces
+  )
 
 install(TARGETS
   wang2_node
