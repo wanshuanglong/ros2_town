@@ -34,6 +34,8 @@ public:
                                         std::bind(&SingleDogNode::sell_book_callback,this,_1,_2),
                                         rmw_qos_profile_services_default,
                                         callback_group_service_);
+        // 4.2 声明参数
+        this->declare_parameter<std::int64_t>("novel_price", novel_price);
 
     }
 
@@ -50,6 +52,9 @@ private:
     rclcpp::CallbackGroup::SharedPtr callback_group_service_;
     // 3.3.1 声明一个服务端
     rclcpp::Service<village_interfaces::srv::SellNovel>::SharedPtr server_;
+
+    // 4.1 声明一下书的单价
+    unsigned int novel_price = 1; //默认值为1
 
     // 1.5 收到话题数据的回调函数
     void topic_callback(const std_msgs::msg::String::SharedPtr msg)
@@ -74,7 +79,9 @@ private:
         // 等待novels_queue中的书达到我们要卖出的书的数量
         // 这会造成死锁
         RCLCPP_INFO(this->get_logger(), "收到一个买书请求，一共给了%d钱",request->money);
-        unsigned int novelsNum = request->money*1;  //应给小说数量，一块钱一章
+        // 4.3 更新参数
+        this->get_parameter("novel_price",novel_price);
+        unsigned int novelsNum = int(request->money/novel_price);  //应给小说数量，
 
         //判断当前书库里书的数量是否满足张三要买的数量，不够则进入等待函数
         if(novels_queue.size()<novelsNum)
@@ -101,7 +108,7 @@ private:
             }
         }
         // 章节数量满足需求了
-        RCLCPP_INFO(this->get_logger(), "当前艳娘传奇章节存量为%d：已经满足需求",novels_queue.size());
+        RCLCPP_INFO(this->get_logger(), "当前艳娘传奇章节存量为%d：已经满足需求。卖出了%d章书。",novels_queue.size(),novelsNum);
 
         //一本本把书取出来，放进请求响应对象response中
         for(unsigned int i =0 ;i<novelsNum;i++)

@@ -43,3 +43,6 @@ install(TARGETS
   wang2_node
   DESTINATION lib/${PROJECT_NAME}
 )
+# 将launch文件夹安装到install目录。
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME})

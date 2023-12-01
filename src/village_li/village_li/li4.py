@@ -19,8 +19,8 @@ class WritherNode(Node): # 继承Node类的功能
 
         #2.3 编写发布逻辑发布数据
         self.count = 0
-        self.timer_period = 5
-        self.timer = self.create_timer(self.timer_period, self.timer_callback)
+        self.write_timer_period = 5
+        self.timer = self.create_timer(self.write_timer_period, self.timer_callback)
         #这个定时器的作用就是根据传入的timer_period时间周期，每隔一个timer_period秒，调用一次self.timer_callback函数。
         
         self.account = 80
@@ -30,12 +30,19 @@ class WritherNode(Node): # 继承Node类的功能
         # 新建借钱服务
         self.borrow_server = self.create_service(BorrowMoney, "borrow_money", self.borrow_money_callback)
 
+        # 5.1 声明参数,参数名字，默认值
+        self.declare_parameter("write_timer_period",5)
+
     def timer_callback(self):
         msg = String()
         msg.data = "第%d回: 潋滟湖 %d 次偶遇胡艳娘" % (self.count, self.count)
         self.pub_novel.publish(msg) # 让发布者发布消息
         self.get_logger().info("发布了一个章节的小说，内容是：%s" % msg.data)
         self.count += 1
+        # 回调之后更新回调周期
+        timer_period = self.get_parameter('write_timer_period').get_parameter_value().integer_value
+        # 更新回调周期
+        self.timer.timer_period_ns = timer_period * (1000*1000*1000) #纳秒转秒
 
     def recv_money_callback(self,money):
         """
